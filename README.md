@@ -20,3 +20,15 @@ This project shows how to configure [Home Assistant](https://www.home-assistant.
 - Update modbus IP address in configuration.yaml to the [HA485](https://www.securecom.eu/en/our-products/supplies-and-accessories)
 - Install [card-mod 3](https://github.com/thomasloven/lovelace-card-mod) in home assistant to show cards correctly
 - Update your cards according to cards.yaml
+
+## The heat pump status in IDLE and COOLING mode
+
+<p align="center">
+  <img src="https://github.com/xilard/home-assistant-lg-heatpump/assets/25320041/0fd30099-a1dd-4761-85fa-fb5ca6c2fb65" />
+</p>
+
+## History graph of COOLING
+
+<p align="center">
+  <img src="https://github.com/xilard/home-assistant-lg-heatpump/assets/25320041/1f958979-2a78-4638-8b57-799a28a37b1c" />
+</p>
