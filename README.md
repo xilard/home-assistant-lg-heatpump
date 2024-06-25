@@ -5,7 +5,7 @@ This project shows how to configure [Home Assistant](https://www.home-assistant.
 ## Hardware requirements:
 - [HA485](https://www.securecom.eu/en/our-products/supplies-and-accessories) RS485-WIFI converter for MODBUS communication
 - If you want to measure power consumption:
-  - [ESP32-PICO-DevKitM-2](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/hw-reference/esp32/get-started-pico-devkitm-2.html) or any [ESP32 DevKit](https://www.espressif.com/en/products/devkits)
+  - [ESP32-PICO-DevKitM-2](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/hw-reference/esp32/get-started-pico-devkitm-2.html) (or any other ESPHome compatible [ESP32 DevKit](https://www.espressif.com/en/products/devkits))
   - SCT-013 30A/1V CT clamp
 
 ## Installation
@@ -17,14 +17,14 @@ This project shows how to configure [Home Assistant](https://www.home-assistant.
   - Put the SCT-013 CT clamp to the one of the heat pump power wire
   - Fix the calibration filter if necessary
 - Update secret.yaml and configuration.yaml in the home assistant configuration folder
-- Update modbus IP address in configuration.yaml to the [HA485](https://www.securecom.eu/en/our-products/supplies-and-accessories)
+- Update modbus IP address in configuration.yaml to the IP address of the [HA485](https://www.securecom.eu/en/our-products/supplies-and-accessories) RS485-WIFI converter
 - Install [card-mod 3](https://github.com/thomasloven/lovelace-card-mod) in home assistant to show cards correctly
 - Update your cards according to cards.yaml
 
 ## The heat pump status in IDLE and COOLING mode
 
 <p align="center">
-  <img src="https://github.com/xilard/home-assistant-lg-heatpump/assets/25320041/0fd30099-a1dd-4761-85fa-fb5ca6c2fb65" />
+  <img src="https://github.com/xilard/home-assistant-lg-heatpump/assets/25320041/4fb102a8-37ca-40e2-8b96-3800fb7b070b" />
 </p>
 
 ## History graph of COOLING
