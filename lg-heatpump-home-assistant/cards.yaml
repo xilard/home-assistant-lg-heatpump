@@ -1,0 +1,69 @@
+title: Home
+views:
+  - path: default_view
+    title: Heat pump
+    cards:
+      - type: entities
+        entities:
+          - entity: sensor.lg_modbus_quality
+            card_mod:
+              style: |
+                hui-generic-entity-row {
+                  {% if has_value('sensor.lg_modbus_goodness') %}
+                    {% if states('sensor.lg_modbus_goodness') | int < 70 %}
+                      background-color: red;
+                      color: white;
+                    {% endif %}
+                  {% endif %}
+                }
+                .text-content {
+                  {% if has_value('sensor.lg_modbus_goodness') %}
+                    {% if states('sensor.lg_modbus_goodness') | int < 100 %}
+                      {% if states('sensor.lg_modbus_goodness') | int >= 70 %}
+                        color: red;
+                      {% endif %}
+                    {% endif %}
+                  {% endif %}
+                }
+          - entity: sensor.lg_operation_mode
+          - type: section
+            label: Power
+          - entity: sensor.lg_supply_voltage
+          - entity: sensor.lg_compressor_rpm
+          - entity: sensor.lg_ampere_consumption
+          - entity: sensor.lg_power_consumption
+          - type: section
+            label: Temperatures
+          - entity: sensor.lg_outdoor_temperature
+          - entity: sensor.lg_outlet_temperature
+          - entity: sensor.lg_inlet_temperature
+          - type: section
+            label: DHW
+          - entity: sensor.lg_dhw_temperature
+          - entity: switch.lg_dhw_heating_enable
+          - entity: binary_sensor.lg_dhw_heating
+          - entity: sensor.lg_target_dhw_temperature
+          - entity: input_number.lg_target_dhw_temperature_input
+            name: LG set target DHW temp.
+          - type: section
+            label: Silent mode
+          - entity: switch.lg_silent_mode_enable
+          - entity: binary_sensor.lg_silent_mode
+          - type: section
+            label: Sensors
+          - entity: binary_sensor.lg_compressor
+          - entity: binary_sensor.lg_water_pump
+          - entity: sensor.lg_flow_rate
+          - entity: binary_sensor.lg_defrosting
+          - type: section
+            label: Other sensors
+          - entity: sensor.lg_liquid_gas_temperature
+          - entity: sensor.lg_suction_temperature
+          - entity: sensor.lg_heat_gas_temperature
+          - entity: sensor.lg_temperature_before_vaporiser
+          - entity: sensor.lg_temperature_after_vaporiser
+          - entity: sensor.lg_hight_pressure
+          - entity: sensor.lg_low_pressure
+        show_header_toggle: false
+        title: LG Therma V HM091MR.U44
+        state_color: true

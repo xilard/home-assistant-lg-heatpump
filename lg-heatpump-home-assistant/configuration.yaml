@@ -1,0 +1,543 @@
+
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+#automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+#logger:
+#  default: warning
+#  logs:
+#    homeassistant.components.modbus: debug
+#    pymodbus: debug
+
+template:
+
+  - sensor:
+
+    - name: "LG modbus quality"
+      unique_id: "lg_modbus_quality"
+      unit_of_measurement: '%'
+      state: >
+        {% set entities = [
+          'sensor.input_temperatures',
+          'sensor.undocumented_input_temperatures',
+          'sensor.lg_operation_mode_raw',
+          'sensor.lg_target_dhw_temperature',
+          'binary_sensor.lg_water_pump_raw',
+          'binary_sensor.lg_compressor_raw',
+          'binary_sensor.lg_defrosting_raw',
+          'binary_sensor.lg_dhw_heating_raw',
+          'binary_sensor.lg_silent_mode_raw',
+          'switch.lg_dhw_heating_enable',
+          'switch.lg_silent_mode_enable'
+        ] %}
+        {% set ns = namespace(num_okay = 0) %}
+        {% for entity in entities %}
+          {% if has_value(entity) %}
+            {% set ns.num_okay = ns.num_okay + 1 %}
+          {% endif %}
+        {% endfor %}
+        {{ (ns.num_okay * 100 / (entities | count)) | int }}
+
+    - name: "LG operation mode"
+      unique_id: "lg_operation_mode"
+      availability: >
+        {{ has_value('sensor.lg_operation_mode_raw') or has_value('sensor.lg_operation_mode') }}
+      state: >
+        {% if has_value('sensor.lg_operation_mode_raw') %}
+          {% set op_mode = states('sensor.lg_operation_mode_raw') | int %}
+          {% set rpm = states('sensor.lg_compressor_rpm') | int(0) %}
+          {% if is_state('binary_sensor.lg_water_pump', 'on') %}
+            {% if rpm == 0 %}
+              {% if op_mode == 0 %}
+                Water pump [Cooling]
+              {% elif op_mode == 4 %}
+                Water pump [Heating]
+              {% elif op_mode == 3 %}
+                Water pump [Auto]
+              {% else %}
+                Water pump [?]
+              {% endif %}
+            {% else %}
+              {% if op_mode == 0 %}
+                Cooling
+              {% elif op_mode == 4 %}
+                Heating
+              {% elif op_mode == 3 %}
+                Auto
+              {% else %}
+                ?
+              {% endif %}
+            {% endif %}
+          {% else %}
+            Idle
+          {% endif %}
+        {% else %}
+          {{ states('sensor.lg_operation_mode') }}
+        {% endif %}
+
+###########################
+        
+    - name: "LG inlet temperature"
+      unique_id: "lg_inlet_temperature"
+      unit_of_measurement: '°C'
+      availability: >
+        {{ has_value('sensor.input_temperatures') or has_value('sensor.lg_inlet_temperature') }}
+      state: >
+        {% if has_value('sensor.input_temperatures') %}
+          {{ states('sensor.input_temperatures').split(',')[2] | float / 10 | round(1) }}
+        {% else %}
+          {{ states('sensor.lg_inlet_temperature') }}
+        {% endif %}
+
+    - name: "LG outlet temperature"
+      unique_id: "lg_outlet_temperature"
+      unit_of_measurement: '°C'
+      availability: >
+        {{ has_value('sensor.input_temperatures') or has_value('sensor.lg_outlet_temperature') }}
+      state: >
+        {% if has_value('sensor.input_temperatures') %}
+          {{ states('sensor.input_temperatures').split(',')[3] | float / 10 | round(1) }}
+        {% else %}
+          {{ states('sensor.lg_outlet_temperature') }}
+        {% endif %}
+
+    - name: "LG DHW temperature"
+      unique_id: "lg_dhw_temperature"
+      unit_of_measurement: '°C'
+      availability: >
+        {{ has_value('sensor.input_temperatures') or has_value('sensor.lg_dhw_temperature') }}
+      state: >
+        {% if has_value('sensor.input_temperatures') %}
+          {{ states('sensor.input_temperatures').split(',')[5] | float / 10 | round(1) }}
+        {% else %}
+          {{ states('sensor.lg_dhw_temperature') }}
+        {% endif %}
+
+    - name: "LG flow rate"
+      unique_id: "lg_flow_rate"
+      unit_of_measurement: 'l/min'
+      availability: >
+        {{ has_value('sensor.input_temperatures') or has_value('sensor.lg_flow_rate') }}
+      state: >
+        {% if has_value('sensor.input_temperatures') %}
+          {% set v = states('sensor.input_temperatures').split(',')[8] | float / 10 %}
+            {% if v <= 5 %}
+              {% set v = 0 %}
+            {% endif %}
+          {{ v | round(1) }}
+        {% else %}
+          {{ states('sensor.lg_flow_rate') }}
+        {% endif %}
+
+    - name: "LG outdoor temperature"
+      unique_id: "lg_outdoor_temperature"
+      unit_of_measurement: '°C'
+      availability: >
+        {{ has_value('sensor.input_temperatures') or has_value('sensor.lg_outdoor_temperature') }}
+      state: >
+        {% if has_value('sensor.input_temperatures') %}
+          {% set v = states('sensor.input_temperatures').split(',')[12] | float / 10 %}
+            {% if v >= -50 and v <= 50 %}
+              {{ v | round(1) }}
+            {% else %}
+              {{ states('sensor.lg_outdoor_temperature') }}
+            {% endif %}
+        {% else %}
+          {{ states('sensor.lg_outdoor_temperature') }}
+        {% endif %}
+
+    - name: "LG liquid gas temperature"
+      unique_id: "lg_liquid_gas_temperature"
+      unit_of_measurement: '°C'
+      availability: >
+        {{ has_value('sensor.undocumented_input_temperatures') or has_value('sensor.lg_liquid_gas_temperature') }}
+      state: >
+        {% if has_value('sensor.undocumented_input_temperatures') %}
+          {{ states('sensor.undocumented_input_temperatures').split(',')[0] | float / 10 | round(1) }}
+        {% else %}
+          {{ states('sensor.lg_liquid_gas_temperature') }}
+        {% endif %}
+
+    - name: "LG suction temperature"
+      unique_id: "lg_suction_temperature"
+      unit_of_measurement: '°C'
+      availability: >
+        {{ has_value('sensor.undocumented_input_temperatures') or has_value('sensor.lg_suction_temperature') }}
+      state: >
+        {% if has_value('sensor.undocumented_input_temperatures') %}
+          {{ states('sensor.undocumented_input_temperatures').split(',')[2] | float / 10 | round(1) }}
+        {% else %}
+          {{ states('sensor.lg_suction_temperature') }}
+        {% endif %}
+
+    - name: "LG heat gas temperature"
+      unique_id: "lg_heat_gas_temperature"
+      unit_of_measurement: '°C'
+      availability: >
+        {{ has_value('sensor.undocumented_input_temperatures') or has_value('sensor.lg_heat_gas_temperature') }}
+      state: >
+        {% if has_value('sensor.undocumented_input_temperatures') %}
+          {{ states('sensor.undocumented_input_temperatures').split(',')[3] | float / 10 | round(1) }}
+        {% else %}
+          {{ states('sensor.lg_heat_gas_temperature') }}
+        {% endif %}
+
+    - name: "LG temperature before vaporiser"
+      unique_id: "lg_temperature_before_vaporiser"
+      unit_of_measurement: '°C'
+      availability: >
+        {{ has_value('sensor.undocumented_input_temperatures') or has_value('sensor.lg_temperature_before_vaporiser') }}
+      state: >
+        {% if has_value('sensor.undocumented_input_temperatures') %}
+          {{ states('sensor.undocumented_input_temperatures').split(',')[4] | float / 10 | round(1) }}
+        {% else %}
+          {{ states('sensor.lg_temperature_before_vaporiser') }}
+        {% endif %}
+
+    - name: "LG temperature after vaporiser"
+      unique_id: "lg_temperature_after_vaporiser"
+      unit_of_measurement: '°C'
+      availability: >
+        {{ has_value('sensor.undocumented_input_temperatures') or has_value('sensor.lg_temperature_after_vaporiser') }}
+      state: >
+        {% if has_value('sensor.undocumented_input_temperatures') %}
+          {{ states('sensor.undocumented_input_temperatures').split(',')[5] | float / 10 | round(1) }}
+        {% else %}
+          {{ states('sensor.lg_temperature_after_vaporiser') }}
+        {% endif %}
+
+    - name: "LG hight pressure"
+      unique_id: "lg_hight_pressure"
+      unit_of_measurement: 'bar'
+      availability: >
+        {{ has_value('sensor.undocumented_input_temperatures') or has_value('sensor.lg_hight_pressure') }}
+      state: >
+        {% if has_value('sensor.undocumented_input_temperatures') %}
+          {{ states('sensor.undocumented_input_temperatures').split(',')[6] | float / 1000 | round(3) }}
+        {% else %}
+          {{ states('sensor.lg_hight_pressure') }}
+        {% endif %}
+
+    - name: "LG low pressure"
+      unique_id: "lg_low_pressure"
+      unit_of_measurement: 'bar'
+      availability: >
+        {{ has_value('sensor.undocumented_input_temperatures') or has_value('sensor.lg_low_pressure') }}
+      state: >
+        {% if has_value('sensor.undocumented_input_temperatures') %}
+          {{ states('sensor.undocumented_input_temperatures').split(',')[7] | float / 1000 | round(3) }}
+        {% else %}
+          {{ states('sensor.lg_low_pressure') }}
+        {% endif %}
+
+    - name: "LG compressor rpm"
+      unique_id: "lg_compressor_rpm"
+      unit_of_measurement: ''
+      availability: >
+        {{ has_value('sensor.undocumented_input_temperatures') or has_value('sensor.lg_compressor_rpm') }}
+      state: >
+        {% if has_value('sensor.undocumented_input_temperatures') %}
+          {{ states('sensor.undocumented_input_temperatures').split(',')[8] | int }}
+        {% else %}
+          {{ states('sensor.lg_compressor_rpm') }}
+        {% endif %}
+
+###########################
+        
+    - name: "LG supply voltage"
+      unique_id: "lg_supply_voltage"
+      icon: mdi:flash
+      unit_of_measurement: 'V'
+      state: !secret supply_voltage
+
+    - name: "LG ampere consumption"
+      unique_id: "lg_ampere_consumption"
+      icon: mdi:flash
+      unit_of_measurement: 'A'
+      state: >
+        {# ----- magic calculation: according to manual measurement ----- #}
+        {% set amper_value = states('sensor.ct_clamp_current') | float(0) %}
+        {% if amper_value < 0.10 %}
+          {# ----- base consumption: ~0.36 A ----- #}
+          {% set amper_value = 0.36 %}
+          {% if is_state('binary_sensor.lg_water_pump', 'on') %}
+            {# ----- water pump consumption: ~1.26 A ----- #}
+            {% set amper_value = amper_value + 1.26 %}
+          {% endif %}
+        {% endif %}
+        {{ amper_value | round(2) }}
+
+    - name: "LG power consumption"
+      unique_id: "lg_power_consumption"
+      icon: mdi:flash
+      unit_of_measurement: 'W'
+      state: >
+        {% set power_value = states('sensor.lg_ampere_consumption') | float * states('sensor.lg_supply_voltage') | float %}
+        {{ power_value | int }}
+
+###########################
+        
+  - binary_sensor:
+
+    - name: "LG water pump"
+      unique_id: "lg_water_pump"
+      unit_of_measurement: ''
+      availability: >
+        {{ has_value('binary_sensor.lg_water_pump') or has_value('binary_sensor.lg_water_pump_raw') }}
+      state: >
+        {% if has_value('binary_sensor.lg_water_pump_raw') %}
+          {% if is_state('binary_sensor.lg_water_pump_raw', 'on') %}
+            on
+          {% else %}
+            off
+          {% endif %}
+        {% else %}
+          {{ states('binary_sensor.lg_water_pump') }}
+        {% endif %}
+
+    - name: "LG compressor"
+      unique_id: "lg_compressor"
+      unit_of_measurement: ''
+      availability: >
+        {{ has_value('binary_sensor.lg_compressor') or has_value('binary_sensor.lg_compressor_raw') }}
+      state: >
+        {% if has_value('binary_sensor.lg_compressor_raw') %}
+          {% if is_state('binary_sensor.lg_compressor_raw', 'on') %}
+            on
+          {% else %}
+            off
+          {% endif %}
+        {% else %}
+          {{ states('binary_sensor.lg_compressor') }}
+        {% endif %}
+
+    - name: "LG defrosting"
+      unique_id: "lg_defrosting"
+      unit_of_measurement: ''
+      availability: >
+        {{ has_value('binary_sensor.lg_defrosting') or has_value('binary_sensor.lg_defrosting_raw') }}
+      state: >
+        {% if has_value('binary_sensor.lg_defrosting_raw') %}
+          {% if is_state('binary_sensor.lg_defrosting_raw', 'on') %}
+            on
+          {% else %}
+            off
+          {% endif %}
+        {% else %}
+          {{ states('binary_sensor.lg_defrosting') }}
+        {% endif %}
+
+    - name: "LG DHW heating"
+      unique_id: "lg_dhw_heating"
+      unit_of_measurement: ''
+      availability: >
+        {{ has_value('binary_sensor.lg_dhw_heating') or has_value('binary_sensor.lg_dhw_heating_raw') }}
+      state: >
+        {% if has_value('binary_sensor.lg_dhw_heating_raw') %}
+          {% if is_state('binary_sensor.lg_dhw_heating_raw', 'on') %}
+            on
+          {% else %}
+            off
+          {% endif %}
+        {% else %}
+          {{ states('binary_sensor.lg_dhw_heating') }}
+        {% endif %}
+
+    - name: "LG silent mode"
+      unique_id: "lg_silent_mode"
+      unit_of_measurement: ''
+      availability: >
+        {{ has_value('binary_sensor.lg_silent_mode') or has_value('binary_sensor.lg_silent_mode_raw') }}
+      state: >
+        {% if has_value('binary_sensor.lg_silent_mode_raw') %}
+          {% if is_state('binary_sensor.lg_silent_mode_raw', 'on') %}
+            on
+          {% else %}
+            off
+          {% endif %}
+        {% else %}
+          {{ states('binary_sensor.lg_silent_mode') }}
+        {% endif %}
+
+input_number:
+  lg_target_dhw_temperature_input:
+    name: LG target DHW temperature input
+    mode: slider
+    min: 40
+    max: 55
+    step: 1
+    unit_of_measurement: '°C'
+
+modbus:
+  - name: modbus_hub
+    type: rtuovertcp
+    host: 192.168.1.80
+    port: 1501
+    delay: 1
+    timeout: 1
+
+    sensors:
+
+      - name: "LG operation mode raw" # 0 : Cooling / 4 : Heating / 3 : Auto
+        unique_id: "lg_operation_mode_raw"
+        scan_interval: !secret scan_interval
+        address: 0
+        slave: !secret slave_address
+        input_type: holding
+        state_class: measurement
+        precision: 0
+        data_type: int16
+
+      - name: "LG target DHW temperature"
+        unique_id: "lg_target_dhw_temperature"
+        scan_interval: !secret scan_interval
+        address: 8
+        slave: !secret slave_address
+        input_type: holding
+        scale: 0.1
+        precision: 0
+        device_class: temperature
+        unit_of_measurement: '°C'
+
+        # input registers
+        # 0: "LG operation cycle"
+        # 2: "LG inlet temperature"
+        # 3: "LG outlet temperature"
+        # 5: "LG DHW temperature"
+        # 8: "LG flow rate"
+        # 12: "LG outdoor temperature"
+
+      - name: "Input temperatures"
+        unique_id: "input_temperatures"
+        scan_interval: !secret scan_interval
+        address: 0
+        count: 13
+        slave: !secret slave_address
+        input_type: input
+        data_type: custom
+        structure: ">13h"
+
+        # undocumented 'input' addresses: 16-24, 63
+        # undocumented 'holding' addresses: 62, 63
+
+        # hidden input registers
+        # 16: "LG liquid gas temperature"
+        # 18: "LG suction temperature"
+        # 19: "LG heat gas temperature"
+        # 20: "LG temperature before vaporiser"
+        # 21: "LG temperature after vaporiser"
+        # 22: "LG hight pressure"
+        # 23: "LG low pressure"
+        # 24: "LG compressor rpm"
+        
+      - name: "Undocumented input temperatures"
+        unique_id: "undocumented_input_temperatures"
+        scan_interval: !secret scan_interval
+        address: 16
+        count: 9
+        slave: !secret slave_address
+        input_type: input
+        data_type: custom
+        structure: ">9h"
+
+    binary_sensors:
+
+      - name: "LG water pump raw"
+        unique_id: "lg_water_pump_raw"
+        scan_interval: !secret scan_interval
+        address: 1
+        slave: !secret slave_address
+        input_type: discrete_input
+
+      - name: "LG compressor raw"
+        unique_id: "lg_compressor_raw"
+        scan_interval: !secret scan_interval
+        address: 3
+        slave: !secret slave_address
+        input_type: discrete_input
+
+      - name: "LG defrosting raw"
+        unique_id: "lg_defrosting_raw"
+        scan_interval: !secret scan_interval
+        address: 4
+        slave: !secret slave_address
+        input_type: discrete_input
+
+      - name: "LG DHW heating raw"
+        unique_id: "lg_dhw_heating_raw"
+        scan_interval: !secret scan_interval
+        address: 5
+        slave: !secret slave_address
+        input_type: discrete_input
+
+      - name: "LG silent mode raw"
+        unique_id: "lg_silent_mode_raw"
+        scan_interval: !secret scan_interval
+        address: 7
+        slave: !secret slave_address
+        input_type: discrete_input
+
+    switches:
+
+      - name: "LG DHW heating enable"
+        unique_id: "lg_dhw_heating_enable"
+        slave: !secret slave_address
+        address: 1
+        write_type: coil
+        command_on: 1
+        command_off: 0
+        verify:
+            input_type: coil
+            address: 1
+            state_on: 1
+            state_off: 0
+
+      - name: "LG silent mode enable"
+        unique_id: "lg_silent_mode_enable"
+        slave: !secret slave_address
+        address: 2
+        write_type: coil
+        command_on: 1
+        command_off: 0
+        verify:
+            input_type: coil
+            address: 2
+            state_on: 1
+            state_off: 0
+
+automation:
+  - alias: "Set target DHW temperature"
+    trigger:
+      - platform: state
+        entity_id:
+          - input_number.lg_target_dhw_temperature_input
+    condition: []
+    action:
+      - service: modbus.write_register
+        data_template:
+          hub: modbus_hub
+          slave: !secret slave_address
+          address: 8
+          value: "{{ states('input_number.lg_target_dhw_temperature_input') | float * 10 | int }}"
+    mode: single
+
+  - alias: "Update target DHW temperature"
+    trigger:
+      - platform: state
+        entity_id:
+          - sensor.lg_target_dhw_temperature
+    condition: "{{ has_value('sensor.lg_target_dhw_temperature') }}"
+    action:
+      - service: input_number.set_value
+        target:
+          entity_id: input_number.lg_target_dhw_temperature_input
+        data:
+          value: "{{ states('sensor.lg_target_dhw_temperature') | float | round(0) }}"
+    mode: single

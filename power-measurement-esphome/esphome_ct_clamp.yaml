@@ -1,0 +1,48 @@
+esphome:
+  name: esphome_ct_clamp
+
+esp32:
+  board: pico32
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  password: "<password-for-ha>"
+
+ota:
+  password: "<password-for-ota>"
+
+wifi:
+  ssid: "<your-hotspot-name>"
+  password: "<password-for-hotspot>"
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Esphome Ct Clamp"
+    password: "NbpWxMAFtR"
+
+captive_portal:
+    
+sensor:
+
+  - platform: adc
+    pin: GPIO36
+    id: adc_sensor
+    attenuation: 11db
+    accuracy_decimals: 2
+    update_interval: never
+
+  - platform: ct_clamp
+    sensor: adc_sensor
+    name: "CT clamp current"
+    sample_duration: 2s
+    update_interval: 10s
+    accuracy_decimals: 2
+    filters:
+      - calibrate_linear:
+          - 0.005 -> 0            
+          - 0.268 -> 8.1
