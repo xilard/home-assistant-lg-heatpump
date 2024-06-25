@@ -29,7 +29,6 @@ views:
           - type: section
             label: Power
           - entity: sensor.lg_supply_voltage
-          - entity: sensor.lg_compressor_rpm
           - entity: sensor.lg_ampere_consumption
           - entity: sensor.lg_power_consumption
           - type: section
@@ -52,6 +51,7 @@ views:
           - type: section
             label: Sensors
           - entity: binary_sensor.lg_compressor
+          - entity: sensor.lg_compressor_rpm
           - entity: binary_sensor.lg_water_pump
           - entity: sensor.lg_flow_rate
           - entity: binary_sensor.lg_defrosting
