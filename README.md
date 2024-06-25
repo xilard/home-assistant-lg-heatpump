@@ -24,11 +24,11 @@ This project shows how to configure [Home Assistant](https://www.home-assistant.
 ## The heat pump status in IDLE and COOLING mode
 
 <p align="center">
-  <img src="https://github.com/xilard/home-assistant-lg-heatpump/assets/25320041/4fb102a8-37ca-40e2-8b96-3800fb7b070b" />
+  <img src="https://github.com/xilard/home-assistant-lg-heatpump/assets/25320041/5449e5e5-0818-476a-8b49-b2ca6daedc2f" />
 </p>
 
 ## History graph of COOLING
 
 <p align="center">
-  <img src="https://github.com/xilard/home-assistant-lg-heatpump/assets/25320041/1f958979-2a78-4638-8b57-799a28a37b1c" />
+  <img src="https://github.com/xilard/home-assistant-lg-heatpump/assets/25320041/daf7f0b4-9293-4542-aaf8-24cc14883003" />
 </p>
